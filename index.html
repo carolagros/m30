@@ -1,16 +1,524 @@
+<!DOCTYPE html>
+<html lang="ca">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Calendari anual interactiu amb fotografies." />
+    <title>Interactive Annual Calendar</title>
+    <style>
+      :root {
+        --page: #f5f2ed;
+        --paper: #ffffff;
+        --accent: #e74c3c;
+        --text: #374151;
+        --muted: #9ca3af;
+        --shadow: 0 18px 55px rgba(62, 50, 39, 0.12);
+      }
 
-  <!DOCTYPE html>
-  <html lang="en">
-    <head>
-      <meta charset="UTF-8" />
-      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      <title>Interactive Annual Calendar</title>
-      <style>html, body { height: 100%; margin: 0; } #root { height: 100%; }</style>
-    </head>
+      * {
+        box-sizing: border-box;
+      }
 
-    <body>
-      <div id="root"></div>
-      <script type="module" src="/src/main.tsx"></script>
-    </body>
-  </html>
-  
+      html,
+      body {
+        min-height: 100%;
+        margin: 0;
+      }
+
+      body {
+        background: var(--page);
+        color: var(--text);
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      button {
+        font: inherit;
+      }
+
+      .app {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 32px;
+      }
+
+      .calendar-shell {
+        width: min(100%, 980px);
+      }
+
+      .year-nav {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 32px;
+        margin-bottom: 28px;
+      }
+
+      .nav-button {
+        width: 48px;
+        height: 48px;
+        border: 2px solid var(--accent);
+        border-radius: 50%;
+        color: var(--accent);
+        background: transparent;
+        cursor: pointer;
+        display: grid;
+        place-items: center;
+        transition: background 160ms ease, transform 160ms ease;
+      }
+
+      .nav-button:hover,
+      .nav-button:focus-visible {
+        background: rgba(231, 76, 60, 0.08);
+        outline: none;
+      }
+
+      .nav-button:active {
+        transform: scale(0.96);
+      }
+
+      .year-title {
+        margin: 0;
+        min-width: 190px;
+        color: var(--accent);
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: clamp(56px, 8vw, 92px);
+        font-style: italic;
+        font-weight: 400;
+        line-height: 1;
+        text-align: center;
+      }
+
+      .year-card {
+        position: relative;
+        background: var(--paper);
+        box-shadow: var(--shadow);
+        min-height: 620px;
+        overflow: visible;
+      }
+
+      .months-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 34px 42px;
+        padding: 42px 52px;
+      }
+
+      .month-title {
+        margin: 0 0 8px;
+        color: var(--accent);
+        font-size: 14px;
+        font-weight: 400;
+        text-transform: lowercase;
+      }
+
+      .weekdays,
+      .days {
+        display: grid;
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+        text-align: center;
+      }
+
+      .weekdays {
+        margin-bottom: 7px;
+        color: var(--muted);
+        font-size: 10px;
+        font-weight: 500;
+      }
+
+      .days {
+        row-gap: 6px;
+        color: var(--text);
+        font-size: 11px;
+      }
+
+      .photo-sticker {
+        position: absolute;
+        width: 64px;
+        height: 84px;
+        padding: 0;
+        border: 0;
+        background: transparent;
+        cursor: pointer;
+        transition: transform 160ms ease, filter 160ms ease;
+      }
+
+      .photo-sticker:hover,
+      .photo-sticker:focus-visible {
+        filter: brightness(1.04);
+        outline: none;
+      }
+
+      .photo-sticker img {
+        width: 100%;
+        height: 100%;
+        display: block;
+        object-fit: cover;
+        box-shadow: 0 8px 18px rgba(0, 0, 0, 0.16);
+        pointer-events: none;
+      }
+
+      .modal {
+        position: fixed;
+        inset: 0;
+        z-index: 10;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 56px;
+        background: rgba(0, 0, 0, 0.76);
+      }
+
+      .modal.open {
+        display: flex;
+      }
+
+      .modal-photo {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+        user-select: none;
+      }
+
+      .modal-button {
+        position: absolute;
+        border: 0;
+        border-radius: 50%;
+        color: white;
+        background: rgba(255, 255, 255, 0.13);
+        backdrop-filter: blur(8px);
+        cursor: pointer;
+        display: grid;
+        place-items: center;
+        transition: background 160ms ease;
+      }
+
+      .modal-button:hover,
+      .modal-button:focus-visible {
+        background: rgba(255, 255, 255, 0.24);
+        outline: none;
+      }
+
+      .close-button {
+        top: 24px;
+        right: 24px;
+        width: 44px;
+        height: 44px;
+      }
+
+      .prev-photo,
+      .next-photo {
+        top: 50%;
+        width: 52px;
+        height: 52px;
+        transform: translateY(-50%);
+      }
+
+      .prev-photo {
+        left: 28px;
+      }
+
+      .next-photo {
+        right: 28px;
+      }
+
+      .counter {
+        position: absolute;
+        top: 26px;
+        left: 50%;
+        color: white;
+        font-size: 15px;
+        transform: translateX(-50%);
+      }
+
+      @media (max-width: 760px) {
+        .app {
+          padding: 18px;
+          align-items: flex-start;
+        }
+
+        .year-nav {
+          gap: 22px;
+          margin: 18px 0 22px;
+        }
+
+        .nav-button {
+          width: 42px;
+          height: 42px;
+        }
+
+        .year-title {
+          min-width: 126px;
+          font-size: 58px;
+        }
+
+        .year-card {
+          min-height: 760px;
+        }
+
+        .months-grid {
+          gap: 22px 18px;
+          padding: 28px 18px;
+        }
+
+        .month-title {
+          font-size: 11px;
+          margin-bottom: 5px;
+        }
+
+        .weekdays {
+          font-size: 8px;
+          margin-bottom: 4px;
+        }
+
+        .days {
+          row-gap: 5px;
+          font-size: 8px;
+        }
+
+        .photo-sticker {
+          width: 52px;
+          height: 68px;
+        }
+
+        .modal {
+          padding: 36px 20px;
+        }
+
+        .prev-photo,
+        .next-photo {
+          width: 44px;
+          height: 44px;
+        }
+
+        .prev-photo {
+          left: 12px;
+        }
+
+        .next-photo {
+          right: 12px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="app">
+      <section class="calendar-shell" aria-label="Calendari anual interactiu">
+        <div class="year-nav">
+          <button class="nav-button" type="button" id="prevYear" aria-label="Any anterior">
+            <svg aria-hidden="true" width="26" height="26" viewBox="0 0 24 24" fill="none">
+              <path d="M15 18 9 12l6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </button>
+          <h1 class="year-title" id="yearTitle"></h1>
+          <button class="nav-button" type="button" id="nextYear" aria-label="Any següent">
+            <svg aria-hidden="true" width="26" height="26" viewBox="0 0 24 24" fill="none">
+              <path d="m9 18 6-6-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </button>
+        </div>
+        <div class="year-card" id="yearCard"></div>
+      </section>
+    </main>
+
+    <div class="modal" id="photoModal" role="dialog" aria-modal="true" aria-label="Galeria de fotos">
+      <button class="modal-button close-button" type="button" id="closeModal" aria-label="Tancar">
+        <svg aria-hidden="true" width="26" height="26" viewBox="0 0 24 24" fill="none">
+          <path d="M18 6 6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+        </svg>
+      </button>
+      <div class="counter" id="photoCounter"></div>
+      <button class="modal-button prev-photo" type="button" id="prevPhoto" aria-label="Foto anterior">
+        <svg aria-hidden="true" width="27" height="27" viewBox="0 0 24 24" fill="none">
+          <path d="M15 18 9 12l6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      </button>
+      <img class="modal-photo" id="modalPhoto" alt="" />
+      <button class="modal-button next-photo" type="button" id="nextPhoto" aria-label="Foto següent">
+        <svg aria-hidden="true" width="27" height="27" viewBox="0 0 24 24" fill="none">
+          <path d="m9 18 6-6-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      </button>
+    </div>
+
+    <script>
+      const monthNames = [
+        "gener", "febrer", "març", "abril", "maig", "juny",
+        "juliol", "agost", "setembre", "octubre", "novembre", "desembre"
+      ];
+      const dayNames = ["D", "L", "M", "X", "J", "V", "S"];
+      const photoUrls = [
+        "https://images.unsplash.com/photo-1763655396188-82015c2dab72?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=1080",
+        "https://images.unsplash.com/photo-1695425812104-8a9963d58887?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=1080",
+        "https://images.unsplash.com/photo-1605650836938-9925888f7321?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=1080",
+        "https://images.unsplash.com/photo-1595368062405-e4d7840cba14?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=1080",
+        "https://images.unsplash.com/photo-1613491963112-bf2644f76c6a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=1080",
+        "https://images.unsplash.com/photo-1631225893179-4d6e349189c2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=1080",
+        "https://images.unsplash.com/photo-1702533586864-f548c237fe04?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=1080",
+        "https://images.unsplash.com/photo-1725573839642-f4a6ec92798f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=1080",
+        "https://images.unsplash.com/photo-1648260029310-5f1da359af9d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=1080",
+        "https://images.unsplash.com/photo-1606203426721-0dffb32bdf83?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=1080",
+        "https://images.unsplash.com/photo-1675887923978-d7079d2e2ca2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=1080"
+      ];
+
+      const stickerPositions = [
+        [8, 11, -7], [23, 9, 9], [53, 10, -4], [78, 13, 8], [13, 30, 6],
+        [42, 28, -10], [67, 31, 5], [84, 38, -8], [6, 54, 11], [28, 52, -5],
+        [57, 52, 7], [79, 59, -11], [17, 72, -4], [45, 72, 9], [69, 75, -6],
+        [87, 76, 5], [33, 15, 4], [4, 82, -9], [57, 84, 8], [73, 5, -5]
+      ];
+
+      let selectedYear = new Date().getFullYear();
+      let currentPhotoIndex = 0;
+      let currentPhotos = [];
+
+      const yearTitle = document.getElementById("yearTitle");
+      const yearCard = document.getElementById("yearCard");
+      const modal = document.getElementById("photoModal");
+      const modalPhoto = document.getElementById("modalPhoto");
+      const photoCounter = document.getElementById("photoCounter");
+      const prevPhoto = document.getElementById("prevPhoto");
+      const nextPhoto = document.getElementById("nextPhoto");
+
+      function daysInMonth(year, monthIndex) {
+        return new Date(year, monthIndex + 1, 0).getDate();
+      }
+
+      function firstDayOfMonth(year, monthIndex) {
+        return new Date(year, monthIndex, 1).getDay();
+      }
+
+      function createMonth(year, monthIndex) {
+        const month = document.createElement("section");
+        month.className = "month";
+        month.setAttribute("aria-label", monthNames[monthIndex]);
+
+        const heading = document.createElement("h2");
+        heading.className = "month-title";
+        heading.textContent = monthNames[monthIndex];
+
+        const weekdays = document.createElement("div");
+        weekdays.className = "weekdays";
+        dayNames.forEach((day) => {
+          const item = document.createElement("div");
+          item.textContent = day;
+          weekdays.appendChild(item);
+        });
+
+        const days = document.createElement("div");
+        days.className = "days";
+        for (let i = 0; i < firstDayOfMonth(year, monthIndex); i += 1) {
+          days.appendChild(document.createElement("div"));
+        }
+        for (let day = 1; day <= daysInMonth(year, monthIndex); day += 1) {
+          const item = document.createElement("div");
+          item.textContent = day;
+          days.appendChild(item);
+        }
+
+        month.append(heading, weekdays, days);
+        return month;
+      }
+
+      function makePhotos(year) {
+        const photos = [];
+        for (let i = 0; i < 80; i += 1) {
+          const position = stickerPositions[i % stickerPositions.length];
+          photos.push({
+            id: i + 1,
+            url: photoUrls[(i + year) % photoUrls.length],
+            left: position[0],
+            top: position[1],
+            rotation: position[2]
+          });
+        }
+        return photos;
+      }
+
+      function renderCalendar() {
+        yearTitle.textContent = selectedYear;
+        yearCard.textContent = "";
+        currentPhotos = makePhotos(selectedYear);
+
+        const monthsGrid = document.createElement("div");
+        monthsGrid.className = "months-grid";
+        for (let i = 0; i < 12; i += 1) {
+          monthsGrid.appendChild(createMonth(selectedYear, i));
+        }
+        yearCard.appendChild(monthsGrid);
+
+        currentPhotos.slice(0, 20).forEach((photo, index) => {
+          const button = document.createElement("button");
+          button.className = "photo-sticker";
+          button.type = "button";
+          button.setAttribute("aria-label", `Obrir foto ${index + 1}`);
+          button.style.left = `${photo.left}%`;
+          button.style.top = `${photo.top}%`;
+          button.style.transform = `rotate(${photo.rotation}deg)`;
+          button.addEventListener("click", () => openPhoto(index));
+
+          const image = document.createElement("img");
+          image.src = photo.url;
+          image.alt = `Foto ${index + 1}`;
+          image.loading = index > 5 ? "lazy" : "eager";
+          button.appendChild(image);
+          yearCard.appendChild(button);
+        });
+      }
+
+      function openPhoto(index) {
+        currentPhotoIndex = index;
+        updateModalPhoto();
+        modal.classList.add("open");
+      }
+
+      function closeModal() {
+        modal.classList.remove("open");
+      }
+
+      function updateModalPhoto() {
+        const photo = currentPhotos[currentPhotoIndex];
+        modalPhoto.src = photo.url;
+        modalPhoto.alt = `Foto ${currentPhotoIndex + 1}`;
+        photoCounter.textContent = `${currentPhotoIndex + 1} / ${currentPhotos.length}`;
+        prevPhoto.hidden = currentPhotoIndex === 0;
+        nextPhoto.hidden = currentPhotoIndex === currentPhotos.length - 1;
+      }
+
+      function stepPhoto(direction) {
+        currentPhotoIndex = Math.max(0, Math.min(currentPhotos.length - 1, currentPhotoIndex + direction));
+        updateModalPhoto();
+      }
+
+      document.getElementById("prevYear").addEventListener("click", () => {
+        selectedYear -= 1;
+        renderCalendar();
+      });
+      document.getElementById("nextYear").addEventListener("click", () => {
+        selectedYear += 1;
+        renderCalendar();
+      });
+      document.getElementById("closeModal").addEventListener("click", closeModal);
+      prevPhoto.addEventListener("click", (event) => {
+        event.stopPropagation();
+        stepPhoto(-1);
+      });
+      nextPhoto.addEventListener("click", (event) => {
+        event.stopPropagation();
+        stepPhoto(1);
+      });
+      modal.addEventListener("click", (event) => {
+        if (event.target === modal) closeModal();
+      });
+      window.addEventListener("keydown", (event) => {
+        if (!modal.classList.contains("open")) return;
+        if (event.key === "Escape") closeModal();
+        if (event.key === "ArrowLeft") stepPhoto(-1);
+        if (event.key === "ArrowRight") stepPhoto(1);
+      });
+
+      renderCalendar();
+    </script>
+  </body>
+</html>

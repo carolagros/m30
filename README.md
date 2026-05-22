@@ -1,11 +1,21 @@
 
-  # Interactive Annual Calendar
+# Interactive Annual Calendar
 
-  This is a code bundle for Interactive Annual Calendar. The original project is available at https://www.figma.com/design/1t0UgqxdfHgx0UZWt5mGdq/Interactive-Annual-Calendar.
+This repository includes a standalone `index.html` that can be served directly by GitHub Pages.
 
-  ## Running the code
+## GitHub Pages
 
-  Run `npm i` to install the dependencies.
+Use the repository root as the Pages source. GitHub Pages will load `index.html` directly, without needing a build step.
 
-  Run `npm run dev` to start the development server.
-  
+If you prefer a Vite build later, the project is configured to emit relative assets into `docs/` with:
+
+```sh
+npm install
+npm run build
+```
+
+Then choose `/docs` as the Pages source.
+
+## Development
+
+The original React/Vite source is kept under `src/`.
