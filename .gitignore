@@ -1,3 +1,10 @@
 .idea
 
+node_modules/
+.DS_Store
+*.swp
+*.zip
+
 firebase-upload/
+pics/
+src/pics/
