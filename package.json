@@ -6,6 +6,7 @@
   "scripts": {
     "build": "vite build",
     "dev": "vite",
+    "generate:photo-manifest": "node scripts/generate-photo-manifest.mjs",
     "prepare:firebase-images": "node scripts/prepare-firebase-images.mjs"
   },
   "dependencies": {

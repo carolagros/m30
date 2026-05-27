@@ -9,6 +9,7 @@ const projectRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const supportedExtensions = new Set([".jpg", ".jpeg", ".png", ".heic", ".heif"]);
 const defaultOptions = {
   manifest: join(projectRoot, "src/photo-manifest.json"),
+  sourceRoot: projectRoot,
   out: resolve(projectRoot, "..", "firebase-upload"),
   root: "m30-calendar",
   thumbSize: 480,
@@ -28,6 +29,7 @@ Usage:
 
 Options:
   --out <dir>             Output directory. Default: ../firebase-upload
+  --source-root <dir>     Source photo root. Default: project root
   --root <path>           Firebase object root. Default: m30-calendar
   --manifest <file>       Photo manifest. Default: src/photo-manifest.json
   --limit <number>        Process only the first N manifest items
@@ -68,6 +70,11 @@ function parseArgs(args) {
       index += 1;
     } else if (arg.startsWith("--root=")) {
       options.root = arg.slice("--root=".length).replace(/^\/+|\/+$/g, "");
+    } else if (arg === "--source-root") {
+      options.sourceRoot = resolve(projectRoot, readOption(args, index));
+      index += 1;
+    } else if (arg.startsWith("--source-root=")) {
+      options.sourceRoot = resolve(projectRoot, arg.slice("--source-root=".length));
     } else if (arg === "--manifest") {
       options.manifest = resolve(projectRoot, readOption(args, index));
       index += 1;
@@ -141,6 +148,17 @@ function outputPath(options, variant, src) {
   return join(options.out, objectPath(options, variant, src));
 }
 
+async function sourcePathFor(options, src) {
+  const directPath = join(options.sourceRoot, src);
+  if (await pathExists(directPath)) return directPath;
+
+  if (src.startsWith("src/pics/")) {
+    return join(options.sourceRoot, src.slice("src/pics/".length));
+  }
+
+  return directPath;
+}
+
 async function ensureImageMagick() {
   if (await commandExists("magick")) return;
 
@@ -204,7 +222,7 @@ async function main() {
 
     seen.add(photo.src);
     const extension = extname(photo.src).toLowerCase();
-    const sourcePath = join(projectRoot, photo.src);
+    const sourcePath = await sourcePathFor(options, photo.src);
 
     if (!supportedExtensions.has(extension)) {
       unsupported.push(photo.src);

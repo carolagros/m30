@@ -105,7 +105,7 @@ function basePhotosForYear(year: number) {
       (photo) =>
         photo.year === year &&
         !unavailablePhotoSrcs.has(photo.src) &&
-        /\.(jpe?g|png)$/i.test(photo.src),
+        /\.(jpe?g|png|heic|heif)$/i.test(photo.src),
     )
     .sort((a, b) => (a.date || '').localeCompare(b.date || '') || a.src.localeCompare(b.src));
 }
