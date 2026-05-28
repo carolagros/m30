@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { AnimatePresence, motion, type PanInfo } from 'motion/react';
-import { ChevronLeft, ChevronRight, Play, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import photoManifest from '../../photo-manifest.json';
 import fallbackImageA from '../../imports/image.png';
 import fallbackImageB from '../../imports/image-1.png';
@@ -23,7 +23,8 @@ const MIN_YEAR = YEARS[0];
 const MAX_YEAR = YEARS[YEARS.length - 1];
 const FINAL_YEAR = 2026;
 const FINAL_YEAR_LAST_MONTH = 4;
-const YOUTUBE_URL = 'https://www.youtube.com/';
+const YOUTUBE_URL = 'https://www.youtube.com/watch?v=e2xeTc6u6No';
+const YOUTUBE_EMBED_URL = 'https://www.youtube.com/embed/e2xeTc6u6No';
 
 const firebaseImages = {
   bucket: 'm30-calendar.firebasestorage.app',
@@ -50,29 +51,29 @@ const monthNames = [
 const dayNames = ['D', 'L', 'M', 'X', 'J', 'V', 'S'];
 
 const thirtyPositions = [
-  { x: 8, y: 10 }, { x: 18, y: 6 }, { x: 29, y: 10 },
-  { x: 34, y: 22 }, { x: 32, y: 35 }, { x: 22, y: 42 },
-  { x: 32, y: 50 }, { x: 36, y: 64 }, { x: 30, y: 77 },
-  { x: 18, y: 83 }, { x: 8, y: 78 }, { x: 21, y: 22 },
-  { x: 24, y: 62 }, { x: 14, y: 45 }, { x: 30, y: 90 },
-  { x: 59, y: 8 }, { x: 70, y: 5 }, { x: 80, y: 10 },
-  { x: 88, y: 24 }, { x: 90, y: 40 }, { x: 89, y: 57 },
-  { x: 84, y: 74 }, { x: 74, y: 84 }, { x: 62, y: 83 },
-  { x: 52, y: 72 }, { x: 48, y: 55 }, { x: 48, y: 37 },
-  { x: 52, y: 20 }, { x: 68, y: 45 }, { x: 78, y: 57 },
+  { x: 4, y: 11 }, { x: 16, y: 7 }, { x: 29, y: 11 },
+  { x: 34, y: 23 }, { x: 28, y: 34 }, { x: 16, y: 40 },
+  { x: 28, y: 48 }, { x: 34, y: 61 }, { x: 29, y: 74 },
+  { x: 17, y: 84 }, { x: 4, y: 79 }, { x: 24, y: 24 },
+  { x: 24, y: 62 }, { x: 10, y: 45 }, { x: 25, y: 91 },
+  { x: 61, y: 6 }, { x: 73, y: 7 }, { x: 83, y: 16 },
+  { x: 88, y: 30 }, { x: 88, y: 47 }, { x: 85, y: 64 },
+  { x: 78, y: 77 }, { x: 67, y: 84 }, { x: 57, y: 82 },
+  { x: 51, y: 70 }, { x: 49, y: 55 }, { x: 49, y: 39 },
+  { x: 52, y: 24 }, { x: 58, y: 13 }, { x: 82, y: 82 },
 ];
 
 const scatterPositions = [
-  { x: 13, y: 8 }, { x: 34, y: 10 }, { x: 55, y: 8 },
-  { x: 88, y: 8 }, { x: 22, y: 21 }, { x: 48, y: 17 },
-  { x: 78, y: 18 }, { x: 10, y: 30 }, { x: 35, y: 30 },
-  { x: 65, y: 29 }, { x: 88, y: 30 }, { x: 18, y: 42 },
-  { x: 35, y: 38 }, { x: 82, y: 42 }, { x: 12, y: 54 },
-  { x: 43, y: 59 }, { x: 77, y: 57 }, { x: 20, y: 68 },
-  { x: 52, y: 66 }, { x: 86, y: 68 }, { x: 14, y: 78 },
-  { x: 36, y: 82 }, { x: 62, y: 78 }, { x: 86, y: 83 },
-  { x: 24, y: 90 }, { x: 50, y: 91 }, { x: 72, y: 88 },
-  { x: 90, y: 91 }, { x: 63, y: 19 }, { x: 31, y: 73 },
+  { x: 13, y: 8 }, { x: 34, y: 9 }, { x: 56, y: 7 },
+  { x: 88, y: 8 }, { x: 21, y: 20 }, { x: 47, y: 17 },
+  { x: 77, y: 18 }, { x: 9, y: 31 }, { x: 28, y: 29 },
+  { x: 70, y: 29 }, { x: 91, y: 31 }, { x: 6, y: 36 },
+  { x: 4, y: 66 }, { x: 94, y: 36 }, { x: 96, y: 66 },
+  { x: 7, y: 70 }, { x: 25, y: 72 }, { x: 47, y: 69 },
+  { x: 65, y: 70 }, { x: 88, y: 71 }, { x: 14, y: 82 },
+  { x: 35, y: 76 }, { x: 57, y: 81 }, { x: 82, y: 84 },
+  { x: 5, y: 82 }, { x: 45, y: 82 }, { x: 70, y: 82 },
+  { x: 73, y: 92 }, { x: 92, y: 91 }, { x: 63, y: 21 },
 ];
 
 function thirtyStartInViewport(position: { x: number; y: number }) {
@@ -295,16 +296,7 @@ function IntroGate({ onEnter }: { onEnter: () => void }) {
         <motion.p initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.55 }}>
           Moltes Felicitats!
         </motion.p>
-        <motion.span
-          initial={{ y: 8, opacity: 0 }}
-          animate={{ y: [0, -8, 0], opacity: 1 }}
-          transition={{
-            opacity: { delay: 0.18, duration: 0.45 },
-            y: { delay: 0.65, duration: 1.15, repeat: Infinity, ease: 'easeInOut' },
-          }}
-        >
-          Clica per obrir el regal!
-        </motion.span>
+        <span>Clica per obrir el regal!</span>
       </div>
       <motion.div
         className="m30-intro__arrow"
@@ -478,37 +470,40 @@ function monthPhotoStyle(
   monthIndex: number,
 ): MonthPhotoStyle {
   const count = monthPhotos.length;
-  const metadata = metadataDay(photo, year, monthIndex);
-  const columns = count > 14 ? 5 : count > 8 ? 4 : count > 4 ? 3 : 2;
-  const rows = Math.max(1, Math.ceil(count / columns));
-  const size = count > 14 ? 18 : count > 8 ? 21 : count > 4 ? 24 : 29;
-  const jitterX = -4 + stableNumber(photo.src, index + 41) * 8;
-  const jitterY = -3 + stableNumber(photo.src, index + 59) * 6;
-  const rotation = -9 + stableNumber(photo.src, index + 83) * 18;
-
-  let left: number;
-  let top: number;
-
-  if (metadata) {
-    const gridIndex = firstDayOfMonth(year, monthIndex) + metadata - 1;
-    const weekday = gridIndex % 7;
-    const week = Math.floor(gridIndex / 7);
-    const sameDayIndex = monthPhotos
-      .slice(0, index)
-      .filter((item) => metadataDay(item, year, monthIndex) === metadata).length;
-    left = ((weekday + 0.5) / 7) * 100 + jitterX + ((sameDayIndex % 3) - 1) * 18;
-    top = 30 + ((week + 0.5) / 6) * 58 + jitterY + Math.floor(sameDayIndex / 3) * 7;
-  } else {
-    const column = index % columns;
-    const row = Math.floor(index / columns);
-    left = ((column + 0.5) / columns) * 100 + jitterX;
-    top = 30 + ((row + 0.5) / rows) * 62 + jitterY;
-  }
+  const size = count > 16 ? 20 : count > 10 ? 23 : count > 5 ? 26 : 30;
+  const jitterX = -3 + stableNumber(photo.src, index + 41) * 6;
+  const jitterY = -2.5 + stableNumber(photo.src, index + 59) * 5;
+  const rotation = -8 + stableNumber(photo.src, index + 83) * 16;
+  const flexiblePhotos = monthPhotos.filter((item) => !metadataDay(item, year, monthIndex));
+  const distributedDayFor = (item: PhotoRecord) => {
+    const flexibleIndex = flexiblePhotos.findIndex((photoItem) => photoItem.src === item.src);
+    return flexibleIndex >= 0
+      ? Math.max(
+          1,
+          Math.min(
+            daysInMonth(year, monthIndex),
+            Math.round(1 + (flexibleIndex * (daysInMonth(year, monthIndex) - 1)) / Math.max(1, flexiblePhotos.length - 1)),
+          ),
+        )
+      : 1;
+  };
+  const dayFor = (item: PhotoRecord) => metadataDay(item, year, monthIndex) || distributedDayFor(item);
+  const day = dayFor(photo);
+  const gridIndex = firstDayOfMonth(year, monthIndex) + day - 1;
+  const weekday = gridIndex % 7;
+  const week = Math.floor(gridIndex / 7);
+  const sameDayIndex = monthPhotos
+    .slice(0, index)
+    .filter((item) => dayFor(item) === day).length;
+  const sameDayOffsetX = ((sameDayIndex % 3) - 1) * 9;
+  const sameDayOffsetY = Math.floor(sameDayIndex / 3) * 5;
+  const left = ((weekday + 0.5) / 7) * 100 + jitterX + sameDayOffsetX;
+  const top = 19 + ((week + 0.5) / 6) * 76 + jitterY + sameDayOffsetY;
 
   return {
     '--m30-photo-size': `${size}px`,
-    left: `${Math.max(9, Math.min(91, left))}%`,
-    top: `${Math.max(24, Math.min(91, top))}%`,
+    left: `${Math.max(7, Math.min(93, left))}%`,
+    top: `${Math.max(18, Math.min(94, top))}%`,
     rotate: `${rotation}deg`,
     zIndex: 20 + index,
   };
@@ -613,6 +608,26 @@ function CalendarSection() {
   const [selectedPhoto, setSelectedPhoto] = useState<PhotoRecord | null>(null);
   const [modalPhotos, setModalPhotos] = useState<PhotoRecord[]>([]);
   const [photoIndex, setPhotoIndex] = useState(0);
+  const [showYearSwipeHint, setShowYearSwipeHint] = useState(() => {
+    if (typeof window === 'undefined') return true;
+    return window.localStorage.getItem('m30-year-swipe-hint-seen') !== 'true';
+  });
+
+  const hideYearSwipeHint = () => {
+    setShowYearSwipeHint(false);
+    window.localStorage?.setItem('m30-year-swipe-hint-seen', 'true');
+  };
+
+  useEffect(() => {
+    if (!showYearSwipeHint) return undefined;
+    const timer = window.setTimeout(hideYearSwipeHint, 5200);
+    return () => window.clearTimeout(timer);
+  }, [showYearSwipeHint]);
+
+  const changeYear = (direction: number) => {
+    hideYearSwipeHint();
+    setSelectedYear((year) => Math.max(MIN_YEAR, Math.min(MAX_YEAR, year + direction)));
+  };
 
   const openPhoto = (photo: PhotoRecord, yearPhotos: PhotoRecord[]) => {
     setSelectedPhoto(photo);
@@ -635,6 +650,11 @@ function CalendarSection() {
     if (info.offset.x < -60) stepPhoto(1);
   };
 
+  const handleYearDragEnd = (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+    if (info.offset.x > 58) changeYear(-1);
+    if (info.offset.x < -58) changeYear(1);
+  };
+
   const currentModalPhoto = modalPhotos[photoIndex] || selectedPhoto || undefined;
 
   return (
@@ -643,7 +663,7 @@ function CalendarSection() {
       <div className="m30-year-nav" aria-label="Navegacio per anys">
         <button
           type="button"
-          onClick={() => setSelectedYear((year) => Math.max(MIN_YEAR, year - 1))}
+          onClick={() => changeYear(-1)}
           disabled={selectedYear === MIN_YEAR}
           aria-label="Any anterior"
         >
@@ -652,14 +672,65 @@ function CalendarSection() {
         <span>{selectedYear}</span>
         <button
           type="button"
-          onClick={() => setSelectedYear((year) => Math.min(MAX_YEAR, year + 1))}
+          onClick={() => changeYear(1)}
           disabled={selectedYear === MAX_YEAR}
           aria-label="Any següent"
         >
           <ChevronRight aria-hidden="true" />
         </button>
       </div>
-      <YearCalendar year={selectedYear} onPhotoClick={openPhoto} />
+      <div className="m30-calendar-legend" aria-label="Llegenda de col·locació de fotos">
+        <span>
+          <i className="m30-calendar-legend__dot m30-calendar-legend__dot--random" aria-hidden="true" />
+          dia random 🎲
+        </span>
+        {' '}
+        <span>
+          <i className="m30-calendar-legend__dot" aria-hidden="true" />
+          dia real ✨
+        </span>
+      </div>
+      <AnimatePresence>
+        {showYearSwipeHint ? (
+          <motion.div
+            className="m30-year-swipe-hint"
+            initial={{ opacity: 0, y: -6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.25 }}
+          >
+            Swipe per canviar d&apos;any
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
+      <motion.div
+        className="m30-calendar-swipe"
+        drag="x"
+        dragConstraints={{ left: 0, right: 0 }}
+        dragElastic={0.08}
+        onDragEnd={handleYearDragEnd}
+      >
+        <YearCalendar year={selectedYear} onPhotoClick={openPhoto} />
+      </motion.div>
+      <div className="m30-year-nav m30-year-nav--bottom" aria-label="Navegacio inferior per anys">
+        <button
+          type="button"
+          onClick={() => changeYear(-1)}
+          disabled={selectedYear === MIN_YEAR}
+          aria-label="Any anterior"
+        >
+          <ChevronLeft aria-hidden="true" />
+        </button>
+        <span>{selectedYear}</span>
+        <button
+          type="button"
+          onClick={() => changeYear(1)}
+          disabled={selectedYear === MAX_YEAR}
+          aria-label="Any següent"
+        >
+          <ChevronRight aria-hidden="true" />
+        </button>
+      </div>
 
       <AnimatePresence>
         {selectedPhoto ? (
@@ -728,10 +799,17 @@ function VideoSection() {
   return (
     <section className="m30-section m30-video" aria-label="Vídeo">
       <h2>I tenim unes paraules per tu</h2>
-      <a className="m30-video-card" href={YOUTUBE_URL} target="_blank" rel="noreferrer" aria-label="Veure el vídeo a YouTube">
-        <span>
-          <Play aria-hidden="true" fill="currentColor" />
-        </span>
+      <div className="m30-video-card">
+        <iframe
+          className="m30-video-card__iframe"
+          src={YOUTUBE_EMBED_URL}
+          title="Vídeo de felicitació"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowFullScreen
+        />
+      </div>
+      <a className="m30-video-link" href={YOUTUBE_URL} target="_blank" rel="noreferrer">
+        Veure a YouTube
       </a>
     </section>
   );
@@ -742,7 +820,7 @@ function Footer() {
     <footer className="m30-footer">
       <p>M30</p>
       <div>
-        <span>Dídac, Núria, Carola</span>
+        <span>Fet per: Dídac, Núria, Ignasi i Carola</span>
         <span>30 de maig del 2026</span>
       </div>
     </footer>

@@ -74,6 +74,11 @@ a {
   line-height: 1;
 }
 
+.m30-intro__copy span {
+  opacity: 1;
+  transform: none !important;
+}
+
 .m30-intro__arrow {
   width: 1px;
   background: var(--m30-accent);
@@ -106,6 +111,7 @@ a {
   position: relative;
   z-index: 4;
   margin-top: 0;
+  max-width: min(86vw, 520px);
 }
 
 .m30-hero__copy h1 {
@@ -118,8 +124,9 @@ a {
 }
 
 .m30-scatter {
+  --m30-scatter-gutter: 28px;
   position: absolute;
-  inset: 0;
+  inset: var(--m30-scatter-gutter);
   z-index: 1;
   pointer-events: none;
 }
@@ -165,7 +172,7 @@ a {
 
 .m30-scatter__photo {
   position: absolute;
-  width: clamp(28px, 8.5vw, 46px);
+  width: clamp(24px, 7.4vw, 44px);
   aspect-ratio: 4 / 5;
   translate: -50% -50%;
   transform-origin: center;
@@ -266,28 +273,57 @@ a {
   position: absolute;
   top: 95px;
   z-index: 15;
-  width: 42px;
-  height: 42px;
+  width: 44px;
+  height: 44px;
   border: 0;
   border-radius: 999px;
-  background: rgb(255 59 48 / 0.94);
-  color: white;
+  background: transparent;
+  color: var(--m30-accent);
   cursor: pointer;
   display: grid;
   place-items: center;
-  box-shadow: 0 12px 26px rgb(255 59 48 / 0.22);
-  transition: transform 180ms ease, background 180ms ease;
+  isolation: isolate;
+  transition: transform 160ms ease;
+}
+
+.m30-birthdays__arrow::before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  z-index: -1;
+  border: 1px solid var(--m30-accent);
+  border-radius: inherit;
+  background: rgb(251 246 234 / 0.75);
+  box-shadow: none;
+  transition: background 160ms ease, border-color 160ms ease;
 }
 
 .m30-birthdays__arrow:hover,
 .m30-birthdays__arrow:focus-visible {
-  background: #2e2e2e;
-  transform: translateY(-1px);
+  color: var(--m30-cream);
+}
+
+.m30-birthdays__arrow:hover::before,
+.m30-birthdays__arrow:focus-visible::before {
+  background: var(--m30-accent);
+  border-color: var(--m30-accent);
+}
+
+.m30-birthdays__arrow:active {
+  transform: scale(0.94);
+}
+
+.m30-birthdays__arrow:focus-visible {
+  outline: 2px solid var(--m30-accent);
+  outline-offset: 4px;
 }
 
 .m30-birthdays__arrow svg {
   width: 22px;
   height: 22px;
+  position: relative;
+  z-index: 1;
+  stroke-width: 2;
 }
 
 .m30-birthdays__arrow--left {
@@ -390,11 +426,64 @@ a {
   text-align: center;
 }
 
+.m30-calendar-legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px 14px;
+  width: min(100% - 40px, 430px);
+  margin: -6px auto 18px;
+  color: #2e2e2e;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.25;
+  text-align: center;
+}
+
+.m30-calendar-legend span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.m30-calendar-legend__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--m30-accent);
+  flex: 0 0 auto;
+}
+
+.m30-calendar-legend__dot--random {
+  background: #2e2e2e;
+  opacity: 0.7;
+}
+
+.m30-year-swipe-hint {
+  width: min(100% - 40px, 430px);
+  margin: -6px auto 14px;
+  color: var(--m30-accent);
+  font-family: var(--m30-serif);
+  font-size: 17px;
+  font-style: italic;
+  line-height: 1;
+  text-align: center;
+}
+
+.m30-calendar-swipe {
+  touch-action: pan-y;
+}
+
+.m30-year-nav--bottom {
+  margin: 18px 0 0;
+}
+
 .m30-calendar-card {
   --m30-photo-scale: 1;
   position: relative;
   width: min(100% - 32px, 430px);
-  min-height: 656px;
+  min-height: auto;
   margin-inline: auto;
   padding: 20px 17px 28px;
   overflow: visible;
@@ -405,7 +494,7 @@ a {
 
 .m30-calendar-card__months {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 18px 10px;
 }
 
@@ -416,7 +505,7 @@ a {
   font-size: 8.5px;
   font-weight: 600;
   line-height: 12.75px;
-  text-align: center;
+  text-align: left;
   text-transform: lowercase;
 }
 
@@ -459,9 +548,9 @@ a {
   min-width: 18px;
   aspect-ratio: 4 / 5;
   padding: 0;
-  border: 1px solid rgb(255 255 255 / 0.92);
-  border-radius: 5px;
-  background: white;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
   cursor: pointer;
   translate: -50% -50%;
   transform-origin: center;
@@ -471,8 +560,7 @@ a {
 
 .m30-month-photo:hover,
 .m30-month-photo:focus-visible {
-  outline: 1px solid var(--m30-accent);
-  outline-offset: 2px;
+  outline: 0;
   filter: drop-shadow(0 9px 13px rgb(0 0 0 / 0.24));
 }
 
@@ -481,7 +569,7 @@ a {
   height: 100%;
   display: block;
   object-fit: cover;
-  border-radius: 4px;
+  border-radius: 0;
   pointer-events: none;
 }
 
@@ -499,6 +587,17 @@ a {
 .m30-month-photo__dot--random {
   background: #2e2e2e;
   opacity: 0.7;
+}
+
+@media (min-width: 321px) {
+  .m30-scatter {
+    --m30-scatter-gutter: 54px;
+  }
+
+  .m30-calendar-card {
+    min-height: 656px;
+  }
+
 }
 
 .m30-modal {
@@ -602,32 +701,24 @@ a {
   border: 1px solid #e3e3e3;
   border-radius: 40px;
   background: #2e2e2e;
-  display: grid;
-  place-items: center;
-  color: #ff0000;
-  text-decoration: none;
+  overflow: hidden;
   box-shadow: inset 0 -6px 0 #171717;
-  transition: transform 180ms ease, filter 180ms ease;
 }
 
-.m30-video-card:active {
-  transform: scale(0.98);
+.m30-video-card__iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
 }
 
-.m30-video-card span {
-  width: 72px;
-  height: 50px;
-  border-radius: 12px;
-  display: grid;
-  place-items: center;
-  background: currentColor;
-}
-
-.m30-video-card svg {
-  width: 31px;
-  height: 31px;
-  margin-left: 4px;
-  color: white;
+.m30-video-link {
+  display: inline-block;
+  margin-top: 14px;
+  color: var(--m30-accent);
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
 }
 
 .m30-footer {
@@ -695,7 +786,16 @@ a {
   }
 }
 
-@media (min-width: 760px) {
+@media (min-width: 769px) {
+  .m30-scatter {
+    --m30-scatter-gutter: 102px;
+  }
+
+  .m30-year-nav--bottom,
+  .m30-year-swipe-hint {
+    display: none;
+  }
+
   .m30-years {
     padding-inline: clamp(24px, 4vw, 64px);
   }
