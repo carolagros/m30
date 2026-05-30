@@ -161,10 +161,23 @@ function sortedMonthPhotos(yearPhotos: PhotoRecord[], monthIndex: number) {
     );
 }
 
+function photoFileName(photo: PhotoRecord) {
+  return photo.src.split('/').pop() || photo.src;
+}
+
+function isDoubleZeroBirthdayPhoto(photo: PhotoRecord) {
+  return /^00(?:$|[^a-z0-9])/i.test(photoFileName(photo));
+}
+
+function isSingleZeroCoverPhoto(photo: PhotoRecord) {
+  return /^0(?:$|[^a-z0-9])/i.test(photoFileName(photo));
+}
+
 function coverPhotoForYear(year: number) {
   const yearPhotos = photosForYear(year);
   return (
-    yearPhotos.find((photo) => /\/0[-\s]/i.test(photo.src)) ||
+    yearPhotos.find(isDoubleZeroBirthdayPhoto) ||
+    yearPhotos.find(isSingleZeroCoverPhoto) ||
     yearPhotos.find((photo) => photo.source === 'metadata') ||
     yearPhotos[0]
   );
