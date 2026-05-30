@@ -1,11 +1,14 @@
 #!/usr/bin/env node
 import { readdir, readFile, writeFile } from "node:fs/promises";
+import { execFile } from "node:child_process";
 import { join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { promisify } from "node:util";
 
 const projectRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const supportedExtensions = new Set([".jpg", ".jpeg", ".png", ".heic", ".heif"]);
 const defaultManifest = join(projectRoot, "src/photo-manifest.json");
+const execFileAsync = promisify(execFile);
 
 function printHelp() {
   console.log(`Generate src/photo-manifest.json from year folders.
@@ -76,6 +79,49 @@ function fallbackMonth(src, year) {
   return Math.floor(stableNumber(src, year) * (lastMonth + 1));
 }
 
+async function metadataDate(filePath) {
+  try {
+    const { stdout } = await execFileAsync("identify", [
+      "-quiet",
+      "-format",
+      "%[EXIF:DateTimeOriginal]",
+      filePath,
+    ]);
+    const match = stdout.trim().match(/^(\d{4}):(\d{2}):(\d{2})/);
+    if (!match) return null;
+    return `${match[1]}-${match[2]}-${match[3]}`;
+  } catch {
+    return null;
+  }
+}
+
+async function metadataForNewPhoto(filePath, src, year) {
+  const date = await metadataDate(filePath);
+
+  if (!date) {
+    return {
+      month: fallbackMonth(src, year),
+      source: "random-no-metadata",
+      date: null,
+    };
+  }
+
+  const [dateYear, dateMonth] = date.split("-").map(Number);
+  if (dateYear === year && dateMonth >= 1 && dateMonth <= 12) {
+    return {
+      month: dateMonth - 1,
+      source: "metadata",
+      date,
+    };
+  }
+
+  return {
+    month: fallbackMonth(src, year),
+    source: "random-metadata-year-mismatch",
+    date,
+  };
+}
+
 function normalizeSrc(sourceRoot, filePath) {
   const relativePath = relative(sourceRoot, filePath).split("/").join("/");
   return `src/pics/${relativePath}`;
@@ -111,13 +157,14 @@ async function main() {
 
     const year = Number(match[1]);
     const previous = previousBySrc.get(src);
+    const metadata = previous ?? await metadataForNewPhoto(filePath, src, year);
 
     manifest.push({
       src,
       year,
-      month: previous?.month ?? fallbackMonth(src, year),
-      source: previous?.source ?? "random-no-metadata",
-      date: previous?.date ?? null,
+      month: metadata.month,
+      source: metadata.source,
+      date: metadata.date,
     });
   }
 
